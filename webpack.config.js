@@ -30,6 +30,7 @@ var options = {
         globalObject: "this",
         path: path.resolve(__dirname, 'dist'),
         filename: '[name].bundle.js',
+        publicPath:''
     },
     module: {
         rules: [
@@ -83,36 +84,34 @@ var options = {
         }),
         // expose and write the allowed env vars on the compiled bundle
         new webpack.EnvironmentPlugin(['NODE_ENV']),
-        new CopyWebpackPlugin(
-            [
-                {
-                    from: 'src/manifest.json',
-                    to: path.join(__dirname, 'dist'),
-                    force: true,
-                    transform: function (content, path) {
-                        // generates the manifest file using the package.json informations
-                        return Buffer.from(
-                            JSON.stringify({
-                                description: process.env.npm_package_description,
-                                version: process.env.npm_package_version,
-                                ...JSON.parse(content.toString()),
-                            }, null, '\t')
-                        );
+        new CopyWebpackPlugin({
+            patterns:
+                [
+                    {
+                        from: 'src/manifest.json',
+                        to: path.join(__dirname, 'dist'),
+                        force: true,
+                        transform: function (content, path) {
+                            // generates the manifest file using the package.json informations
+                            return Buffer.from(
+                                JSON.stringify({
+                                    description: process.env.npm_package_description,
+                                    version: process.env.npm_package_version,
+                                    ...JSON.parse(content.toString()),
+                                }, null, '\t')
+                            );
+                        },
                     },
-                },
-                {
-                    from: 'src/background-wrapper.js',
-                    to: path.join(__dirname, 'dist')
-                },
-                {
-                    from: 'src/pages',
-                    to: path.join(__dirname, 'dist', 'pages')
-                }
-            ],
-            {
-                logLevel: 'info',
-                copyUnmodified: true,
-            }
+                    {
+                        from: 'src/background-wrapper.js',
+                        to: path.join(__dirname, 'dist')        
+                    },
+                    {
+                        from: 'src/pages',
+                        to: path.join(__dirname, 'dist', 'pages')
+                    }
+                ],
+        }
         ),
         new HtmlWebpackPlugin({
             template: path.join(__dirname, 'src', 'popup.html'),
